@@ -3,7 +3,7 @@ package jdb
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/oknors/okno/app/cfg"
+	"github.com/comhttp/json/cfg"
 	"github.com/oknors/okno/pkg/utl"
 	"io/ioutil"
 	"os"
@@ -13,7 +13,7 @@ import (
 	"github.com/jcelliott/lumber"
 )
 
-var JDB, _ = NewJDB(cfg.Path, nil)
+var JDB, _ = NewJDB(cfg.CONFIG.Path, nil)
 
 type (
 
