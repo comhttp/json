@@ -1,9 +1,8 @@
-package jdb
+package api
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/comhttp/json/cfg"
 	"github.com/oknors/okno/pkg/utl"
 	"io/ioutil"
 	"os"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/jcelliott/lumber"
 )
-
-var JDB, _ = NewJDB(cfg.CONFIG.Path, nil)
 
 type (
 
@@ -28,11 +25,12 @@ type (
 	}
 	// Driver is what is used to interact with the scribble database. It runs
 	// transactions, and provides log output
-	jdb struct {
+	API struct {
 		col     string
 		mutex   sync.Mutex
 		mutexes map[string]*sync.Mutex
 		path    string // the directory where scribble will create the database
+		port    string
 		log     Logger // the logger scribble will log to
 	}
 )
@@ -44,7 +42,7 @@ type Options struct {
 
 // New creates a new scribble database at the desired directory location, and
 // returns a *Driver to then use for interacting with the database
-func NewJDB(path string, options *Options) (*jdb, error) {
+func NewAPI(path string, options *Options) (*API, error) {
 	// a new javazac database, providing the directory where it will be writing to,
 	// and a qualified logger if desired
 
@@ -63,7 +61,7 @@ func NewJDB(path string, options *Options) (*jdb, error) {
 		opts.Logger = lumber.NewConsoleLogger(lumber.INFO)
 	}
 
-	j := jdb{
+	j := API{
 		path:    path,
 		mutexes: make(map[string]*sync.Mutex),
 		log:     opts.Logger,
@@ -82,7 +80,7 @@ func NewJDB(path string, options *Options) (*jdb, error) {
 
 // Write locks the database and attempts to write the record to the database under
 // the [collection] specified with the [resource] name given
-func (j *jdb) Write(collection, resource string, v interface{}) error {
+func (j *API) Write(collection, resource string, v interface{}) error {
 
 	// ensure there is a place to save record
 	if collection == "" {
@@ -124,7 +122,7 @@ func (j *jdb) Write(collection, resource string, v interface{}) error {
 }
 
 // Read a record from the database
-func (j *jdb) Read(collection, resource string, v interface{}) error {
+func (j *API) Read(collection, resource string, v interface{}) error {
 
 	// ensure there is a place to save record
 	if collection == "" {
@@ -156,7 +154,7 @@ func (j *jdb) Read(collection, resource string, v interface{}) error {
 
 // ReadAll records from a collection; this is returned as a slice of strings because
 // there is no way of knowing what type the record is.
-func (j *jdb) ReadAll(collection string) ([]string, error) {
+func (j *API) ReadAll(collection string) ([]string, error) {
 
 	// ensure there is a collection to read
 	if collection == "" {
@@ -196,7 +194,7 @@ func (j *jdb) ReadAll(collection string) ([]string, error) {
 
 // Delete locks that database and then attempts to remove the collection/resource
 // specified by [path]
-func (j *jdb) Delete(collection, resource string) error {
+func (j *API) Delete(collection, resource string) error {
 	path := filepath.Join(collection, resource)
 	//
 	mutex := j.getOrCreateMutex(collection)
@@ -237,7 +235,7 @@ func stat(path string) (fi os.FileInfo, err error) {
 
 // getOrCreateMutex creates a new collection specific mutex any time a collection
 // is being modfied to avoid unsafe operations
-func (j *jdb) getOrCreateMutex(collection string) *sync.Mutex {
+func (j *API) getOrCreateMutex(collection string) *sync.Mutex {
 
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
@@ -254,8 +252,8 @@ func (j *jdb) getOrCreateMutex(collection string) *sync.Mutex {
 }
 
 // ReadCoins reads in all coin data in and converts to bytes for unmarshalling
-func ReadData(path string) [][]byte {
-	data, err := JDB.ReadAll(path)
+func ReadData(j *API, path string) [][]byte {
+	data, err := j.ReadAll(path)
 	utl.ErrorLog(err)
 	b := make([][]byte, len(data))
 	for i := range data {

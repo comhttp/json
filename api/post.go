@@ -1,4 +1,4 @@
-package jdb
+package api
 
 import (
 	"encoding/json"

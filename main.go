@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/comhttp/json/api"
 	"github.com/comhttp/json/cfg"
 	daemon "github.com/leprosus/golang-daemon"
 	"github.com/sirupsen/logrus"
@@ -44,6 +45,7 @@ func main() {
 	cfg.CONFIG = &cfg.Conf{
 		Path: *path,
 	}
+	a, _ := api.NewAPI(*path, nil)
 
 	err := daemon.Init(*command, map[string]interface{}{}, "./daemonized.pid")
 	if err != nil {
@@ -69,7 +71,7 @@ func main() {
 	case "":
 	default:
 		w := &http.Server{
-			Handler:      Handler(),
+			Handler:      api.Handler(a),
 			Addr:         ":" + *port,
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,

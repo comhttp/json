@@ -1,15 +1,14 @@
-package jdb
+package api
 
 import (
-	"github.com/gorilla/schema"
-
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 	"github.com/oknors/okno/app/mod"
 	"net/http"
 )
 
 // Create appends post path prefix for a database write
-func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+func (a *API) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	path := mux.Vars(r)["host"]
 	col := mux.Vars(r)["col"]
 	id := mux.Vars(r)["slug"]
@@ -23,14 +22,14 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Handle error
 	}
-	JDB.Write(path+"/"+col, id, post)
+	a.Write(path+"/"+col, id, post)
 
 }
 
 var decoder = schema.NewDecoder()
 
-// Change host of JDB
-func Host(h string) *jdb {
-	JDB.path = h
-	return JDB
+// Change host of API
+func (a *API) Host(h string) *API {
+	a.path = h
+	return a
 }

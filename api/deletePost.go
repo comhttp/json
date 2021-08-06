@@ -1,4 +1,4 @@
-package jdb
+package api
 
 import (
 	"fmt"
@@ -7,17 +7,17 @@ import (
 )
 
 // Delete  data from the database
-func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+func (j *API) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	path := mux.Vars(r)["host"]
 	col := mux.Vars(r)["col"]
 	id := mux.Vars(r)["slug"]
-	DeletePost(path, col, id)
+	DeletePost(j, path, col, id)
 	return
 }
 
 // Delete  data from the database
-func DeletePost(path, col, id string) {
-	if err := JDB.Delete(path+"/"+col, id); err != nil {
+func DeletePost(j *API, path, col, id string) {
+	if err := j.Delete(path+"/"+col, id); err != nil {
 		fmt.Println("Error", err)
 	}
 	return
